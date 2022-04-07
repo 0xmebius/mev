@@ -75,3 +75,25 @@ Now you may quickly realize doing this manually may become quite painful. Luckil
 Another thing you may realize is that Uniswap currently has tens of thousands of pairs created. The loop written above will likely take a very long time to complete. We'll cover more advanced patterns for mass querying of data later but for now limit your query to 1000 pairs.
 
 Moving on, we finally begin querying price data of each uniswap pair.
+
+### Step 2: Get Price of a Uniswap Pair
+
+From the Uniswap V2 whitepaper, we can define the instantaneous spot price (i.e., how much of Token 0 will I get for swapping X Token 1 as X -> 0) as Token 0 Reserve Balance/Token 1 Reserve Balance. For example, let's say there are 10 of Token 0 and 2 of Token 1 in the Uniswap Pair. That means the price of Token 1 wrt Token 0 is Reserve0/Reserve1 = 10/2 = 5 or Token 1 is worth 5 of Token 0 (We will cover how to calculate price impact in the next section).
+
+Every single Uniswap V2 pair has an identical ABI. The function signatures of one pair are exactly the same as the other (obviously the function outputs will not have the same values). There is however only 1 function we care about:
+
+```
+function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
+```
+[docs](
+https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair#getreserves)
+
+As the name suggest, calling this function will return 3 elements: the balance of token0, the balance of token1 and the timestamp of the last trade that has changed the reserve balances respectively.
+
+```
+uniswapPair=w3.eth.contract(<pairAddress>, abi=<pairABI>)
+r0, r1, timestamp = uniswapPair.functions.getReserves().call()
+token0SpotPrice = r1/r0
+token1SpotPrice = r0/r1
+```
+Try this with the WETH-USDC [Uniswap V2 pair](https://v2.info.uniswap.org/pair/0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc).
